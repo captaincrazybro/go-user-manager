@@ -5,8 +5,6 @@ import (
 
 	"github.com/captaincrazybro/go-user-manager/server/routers"
 
-	c "github.com/captaincrazybro/literalutil/console"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,8 +16,8 @@ func main() {
 	// creates webserver
 	r := gin.Default()
 
-	r.Static("/public", "../public")
-	r.StaticFile("/favicon.ico", "../views/favicon.ico")
+	r.Static("/public", "public")
+	r.StaticFile("/favicon.ico", "resources/favicon.ico")
 
 	// creates routers for "/" and "/api"
 	website := r.Group("/")
@@ -28,8 +26,5 @@ func main() {
 	routers.HandleWebsite(website)
 	routers.HandleAPI(api)
 
-	r.GET("/favicon.ico")
-
 	r.Run(fmt.Sprintf(":%d", port))
-	c.Plnf("Webserver started on port %d!", port)
 }
