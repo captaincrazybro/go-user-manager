@@ -1,5 +1,6 @@
 package routers
 
 const (
-	FILENAME = "server/users.json"
+	UsersFile    = "server/routers/users.json"
+	SessionsFile = "server/routers/sessions.json"
 )

@@ -17,9 +17,9 @@ const (
 
 func main() {
 	// check if "users.txt" exists, otherwise create it
-	_, err := os.Stat(routers.FILENAME)
+	_, err := os.Stat(routers.UsersFile)
 	if os.IsNotExist(err) {
-		os.Create(routers.FILENAME)
+		os.Create(routers.UsersFile)
 	}
 
 	// creates webserver

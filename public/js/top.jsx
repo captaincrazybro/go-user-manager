@@ -12,8 +12,8 @@ class Login extends React.Component {
     constructor() {
         super();
         this.state = {
-            session: getCookie("session"),
-            user: getCookie("session"),
+            session: localStorage.getItem("session"),
+            user: localStorage.getItem("user")
         }
         this.state.loggedIn = this.state.session && this.state.user
     }
@@ -41,8 +41,8 @@ class LoggedIn extends React.Component {
 
     handleClick() {
         // TODO: post to /api/logout
-        deleteCookie("session")
-        deleteCookie("user")
+        localStorage.removeItem("session")
+        localStorage.removeItem("user")
         window.location.reload(false);
     }
     render() {
@@ -91,6 +91,12 @@ class Welcome extends React.Component {
     }
 }
 
+/**
+ *
+ * @deprecated
+ * @param cname
+ * @param cvalue
+ */
 function setCookie(cname, cvalue) {
     //const d = new Date();
     //d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
@@ -98,6 +104,12 @@ function setCookie(cname, cvalue) {
     document.cookie = cname + "=" + cvalue +  + ";path=/";
 }
 
+/**
+ *
+ * @deprecated
+ * @param cname
+ * @returns {string}
+ */
 function getCookie(cname) {
     let name = cname + "=";
     let ca = document.cookie.split(';');
@@ -112,6 +124,11 @@ function getCookie(cname) {
     }
 }
 
+/**
+ *
+ * @deprecated
+ * @param cname
+ */
 function deleteCookie(cname) {
     document.cookie = `${cname}=${getCookie(cname)}; max-age=0;`
 }

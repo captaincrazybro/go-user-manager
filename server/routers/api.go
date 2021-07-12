@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"math/rand"
 	"net/http"
 	"os"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,6 +25,13 @@ type User struct {
 
 type Users []User
 
+type Session struct {
+	Id   int    `json:"id"`
+	User string `json:"username"`
+}
+
+type Sessions []Session
+
 func HandleAPI(r *gin.RouterGroup) {
 
 	r.GET("/ping", func(ctx *gin.Context) {
@@ -32,7 +40,10 @@ func HandleAPI(r *gin.RouterGroup) {
 
 	r.GET("", func(ctx *gin.Context) {
 		users, err := GetUsers()
-		if err != nil {log.Println(err); return}
+		if err != nil {
+			log.Println(err)
+			return
+		}
 		ctx.JSON(http.StatusOK, users)
 	})
 
@@ -41,7 +52,7 @@ func HandleAPI(r *gin.RouterGroup) {
 		ctx.ShouldBindJSON(&users)
 		fmt.Println(users)
 		b, _ := json.Marshal(users)
-		os.WriteFile(FILENAME, []byte(b), 0666)
+		os.WriteFile(UsersFile, []byte(b), 0666)
 	})
 
 	r.POST("/login", func(ctx *gin.Context) {
@@ -69,8 +80,26 @@ func HandleAPI(r *gin.RouterGroup) {
 			return
 		}
 
-		// handle session
-		ctx.JSON(http.StatusOK, users)
+		// create session
+		sessions, err := GetSessions()
+		if err != nil {
+			ctx.JSON(http.StatusOK, MakeErrRes(err))
+			return
+		}
+
+		id, err := sessions.createSession(user.Username)
+		if err != nil {
+			ctx.JSON(http.StatusOK, MakeErrRes(err))
+			return
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"type":    "success",
+			"message": "Successfully logged in!",
+			"json": gin.H{
+				"sessionId": id,
+			},
+		})
 	})
 }
 
@@ -81,20 +110,102 @@ func MakeErrRes(v interface{}) gin.H {
 	}
 }
 
-func GetUsers() (Users, error) {
-	file, err := os.Open(FILENAME)
+func GetSessions() (Sessions, error) {
+	bts, err := ioutil.ReadFile(SessionsFile)
 	if os.IsNotExist(err) {
-		file, err = os.Create(FILENAME)
+		file, err := os.Create(SessionsFile)
+		defer file.Close()
+		if err != nil {
+			return nil, err
+		}
+		_, err = file.Write([]byte("[]"))
+		if err != nil {
+			return nil, err
+		}
+		return Sessions{}, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	var sessions Sessions
+	err = json.Unmarshal(bts, &sessions)
+
+	return sessions, err
+}
+
+func (sz Sessions) GetSessionFromId(sessionId int) *Session {
+	for _, v := range sz {
+		if v.Id == sessionId {
+			return &v
+		}
+	}
+
+	return nil
+}
+
+func (sz Sessions) GetSessionFromUser(username string) *Session {
+	for _, v := range sz {
+		if v.User == username {
+			return &v
+		}
+	}
+
+	return nil
+}
+
+func (sz Sessions) createSession(username string) (int, error) {
+	id := sz.generateSessionId(username)
+
+	newSession := Session{
+		Id:   id,
+		User: username,
+	}
+
+	sz = append(sz, newSession)
+
+	jsonString, err := json.MarshalIndent(sz, "", "    ")
+	if err != nil {
+		return 0, err
+	}
+
+	err = ioutil.WriteFile(SessionsFile, jsonString, 0644)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, err
+}
+
+func (sz Sessions) generateSessionId(username string) int {
+	// generates the id (an int with 6 digits, ex. 123876)
+	id := rand.Intn(999999-100000) - 100000
+
+	if sz.GetSessionFromId(id) != nil {
+		return sz.generateSessionId(username)
+	} else {
+		return id
+	}
+
+}
+
+func GetUsers() (Users, error) {
+	file, err := os.Open(UsersFile)
+	if os.IsNotExist(err) {
+		file, err = os.Create(UsersFile)
+		defer file.Close()
 		if err != nil {
 			return nil, err
 		}
 
-		_, err := file.Write([]byte("[]"))
+		_, err = file.Write([]byte("[]"))
 		if err != nil {
 			return nil, err
 		}
-		return []User{}, nil
+		return Users{}, nil
 	}
+	defer file.Close()
 
 	bts, err := ioutil.ReadAll(file)
 	if err != nil {
