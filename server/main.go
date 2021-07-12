@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gin-gonic/contrib/static"
 
@@ -15,6 +16,12 @@ const (
 )
 
 func main() {
+	// check if "users.txt" exists, otherwise create it
+	_, err := os.Stat(routers.FILENAME)
+	if os.IsNotExist(err) {
+		os.Create(routers.FILENAME)
+	}
+
 	// creates webserver
 	r := gin.Default()
 
