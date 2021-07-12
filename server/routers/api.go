@@ -6,18 +6,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
-type Login struct {
-	Users     []string `form:"users" json:"users" binding:"required"`
-	Passwords []string `form:"passwords" json:"passwords" binding:"required"`
-}
-
 type LoginBody struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username string ` json:"username" binding:"required"`
+	Password string ` json:"password" binding:"required"`
 }
 
 type User struct {
@@ -29,20 +25,22 @@ type User struct {
 type Users []User
 
 func HandleAPI(r *gin.RouterGroup) {
+
 	r.GET("/ping", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "pong!")
 	})
 
 	r.GET("", func(ctx *gin.Context) {
-		contents, _ := ioutil.ReadFile(FILENAME)
-		ctx.String(http.StatusOK, string(contents))
+		users, err := GetUsers()
+		if err != nil {log.Println(err); return}
+		ctx.JSON(http.StatusOK, users)
 	})
 
 	r.POST("", func(ctx *gin.Context) {
-		var login Login
-		ctx.ShouldBindJSON(&login)
-		fmt.Println(login)
-		b, _ := json.Marshal(login)
+		var users Users
+		ctx.ShouldBindJSON(&users)
+		fmt.Println(users)
+		b, _ := json.Marshal(users)
 		os.WriteFile(FILENAME, []byte(b), 0666)
 	})
 
@@ -84,9 +82,9 @@ func MakeErrRes(v interface{}) gin.H {
 }
 
 func GetUsers() (Users, error) {
-	file, err := os.Open("users.json")
+	file, err := os.Open(FILENAME)
 	if os.IsNotExist(err) {
-		file, err = os.Create("users.json")
+		file, err = os.Create(FILENAME)
 		if err != nil {
 			return nil, err
 		}

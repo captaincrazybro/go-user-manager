@@ -1,5 +1,5 @@
 package routers
 
 const (
-	FILENAME = "server/user.txt"
+	FILENAME = "server/users.json"
 )
