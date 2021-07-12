@@ -1,3 +1,13 @@
+class Top extends React.Component {
+    render() {
+        return (
+            <div id="top" className="element">
+                    <Welcome/> <Login/>
+            </div>
+        )
+    }
+}
+
 class Login extends React.Component {
     constructor() {
         super();
@@ -16,7 +26,7 @@ class Login extends React.Component {
         }
 
         return (
-            <div id="login" className="element">
+            <div id="login">
                 {login}
             </div>
         )
@@ -37,7 +47,7 @@ class LoggedIn extends React.Component {
     }
     render() {
         return (
-            <div>
+            <div style={{margin: "5px"}}>
                 <strong>Hello {this.props.user}!</strong>
                 <button id="login-button" onClick={this.handleClick}>Logout</button>
             </div>
@@ -48,20 +58,37 @@ class LoggedIn extends React.Component {
 class NotLoggedIn extends React.Component {
     constructor() {
         super();
-        this.handleClick = this.handleClick.bind(this)
+        // this.handleClick = this.handleClick.bind(this)
     }
 
-    handleClick() {
-        localStorage.setItem("session", "asdf1234")
-        localStorage.setItem("user", "cqptain")
-        window.location.reload(false);
-    }
+    // handleClick() {
+    //     localStorage.setItem("session", "asdf1234")
+    //     localStorage.setItem("user", "cqptain")
+    //     window.location.reload(false);
+    // }
 
     render() {
         return (
-            <div>
+            <div style={{margin: "5px"}}>
                 <strong>You are not logged in!</strong>
-                <button id="login-button" onClick={this.handleClick} /*href="/login"*/>Login</button>
+                <a href="/login">
+                    <button id="login-button">Login</button>
+                </a>
+            </div>
+        )
+    }
+}
+
+class Welcome extends React.Component {
+    render() {
+        // fetch("http://localhost:8080/api/ping")
+        //     .then(val => val.text())
+        //     .then(val => console.log(val))
+        return (
+            <div id="welcome" style={{margin: "5px"}}>
+                    <strong>
+                        <a id="welcome-link" href="/" style={{textDecoration: "none"}}>Welcome to the GTIS Mack User Manager!</a>
+                    </strong>
             </div>
         )
     }

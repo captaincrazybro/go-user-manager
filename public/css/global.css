@@ -14,8 +14,8 @@ body {
 }
 
 #login {
-    float: right;
     text-align: right;
+    display: inline-block !important;
 }
 
 #login-button {
@@ -28,6 +28,8 @@ body {
     margin: 5px;
     text-decoration: none;
     border-radius: 3px;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 }
 
 #login-button:hover {
@@ -37,7 +39,8 @@ body {
 
 #welcome {
     width: 25%;
-    float: left
+    display: inline-block !important;
+    padding: 5px;
 }
 
 #welcome-link {
@@ -46,4 +49,9 @@ body {
 
 #welcome-link:hover {
     color: lightseagreen;
+}
+
+#top {
+    display: flex;
+    justify-content: space-between;
 }

@@ -1,5 +1,3 @@
 ReactDOM.render((<div>
-    <div id="top">
-        <Welcome /><Login />
-    </div>
+    <Top />
 </div>), document.getElementById("root"))
