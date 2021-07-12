@@ -1,0 +1,30 @@
+#login-page {
+    width: 30%;
+    height: 300px;
+    text-align: center;
+}
+
+#page {
+    text-align: center;
+}
+
+#login-form {
+    margin: 20%;
+}
+
+.login-form-field {
+    width: 100%;
+}
+
+#login-form-fields {
+    text-align: left;
+}
+
+#login-form-button {
+    text-align: right;
+}
+
+.login-form-label {
+    margin-top: 10px;
+    margin-bottom: 0 !important;
+}
