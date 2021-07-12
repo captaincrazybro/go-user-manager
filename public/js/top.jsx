@@ -1,7 +1,7 @@
 class Top extends React.Component {
     render() {
         return (
-            <div id="top" className="element">
+            <div id="top" className="page-element">
                     <Welcome/> <Login/>
             </div>
         )
@@ -12,8 +12,8 @@ class Login extends React.Component {
     constructor() {
         super();
         this.state = {
-            session: localStorage.getItem("session"),
-            user: localStorage.getItem("user"),
+            session: getCookie("session"),
+            user: getCookie("session"),
         }
         this.state.loggedIn = this.state.session && this.state.user
     }
@@ -41,8 +41,8 @@ class LoggedIn extends React.Component {
 
     handleClick() {
         // TODO: post to /api/logout
-        localStorage.removeItem("session")
-        localStorage.removeItem("user")
+        deleteCookie("session")
+        deleteCookie("user")
         window.location.reload(false);
     }
     render() {
@@ -81,9 +81,6 @@ class NotLoggedIn extends React.Component {
 
 class Welcome extends React.Component {
     render() {
-        // fetch("http://localhost:8080/api/ping")
-        //     .then(val => val.text())
-        //     .then(val => console.log(val))
         return (
             <div id="welcome" style={{margin: "5px"}}>
                     <strong>
@@ -92,4 +89,29 @@ class Welcome extends React.Component {
             </div>
         )
     }
+}
+
+function setCookie(cname, cvalue) {
+    //const d = new Date();
+    //d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    //let expires = "expires="+d.toUTCString();
+    document.cookie = cname + "=" + cvalue +  + ";path=/";
+}
+
+function getCookie(cname) {
+    let name = cname + "=";
+    let ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) === 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+}
+
+function deleteCookie(cname) {
+    document.cookie = `${cname}=${getCookie(cname)}; max-age=0;`
 }
