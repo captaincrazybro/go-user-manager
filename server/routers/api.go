@@ -2,15 +2,17 @@ package routers
 
 import (
 	"net/http"
+	"fmt"
+	"os"
 	"io/ioutil"
-	//"strings"
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Login struct {
-	User		string `form:"user" json:"user" binding:"required"`
-	Password	string `form:"password" json:"password" binding:"required"`
+	Users[]		string `form:"users" json:"users" binding:"required"`
+	Passwords[]	string `form:"passwords" json:"passwords" binding:"required"`
 }
 
 func HandleAPI(r *gin.RouterGroup) {
@@ -19,13 +21,15 @@ func HandleAPI(r *gin.RouterGroup) {
 	})
 
 	r.GET("", func (ctx *gin.Context) {
-		contents := getData()
-		ctx.String(http.StatusOK, contents)
+		contents, _ := ioutil.ReadFile(FILENAME)
+		ctx.String(http.StatusOK, string(contents))
 	})
-}
 
-func getData() (parsed string) {
-	data, _ := ioutil.ReadFile(FILENAME)
-	parsed = string(data)
-	return parsed
+	r.POST("", func (ctx *gin.Context) {
+		var login Login
+		ctx.ShouldBindJSON(&login)
+		fmt.Println(login)
+		b, _ := json.Marshal(login)
+		os.WriteFile(FILENAME, []byte(b), 0666)
+	})
 }
