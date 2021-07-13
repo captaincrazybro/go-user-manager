@@ -17,6 +17,15 @@ type LoginBody struct {
 	Password string ` json:"password" binding:"required"`
 }
 
+type SessionBody struct {
+	SessionID int    `json:"sessionId"`
+	Username  string `json:"username"`
+}
+
+type LogoutBody struct {
+	SessionID int `json:"sessionId"`
+}
+
 type User struct {
 	Username   string `json:"username"`
 	Password   string `json:"password"`
@@ -100,6 +109,57 @@ func HandleAPI(r *gin.RouterGroup) {
 				"sessionId": id,
 			},
 		})
+	})
+
+	r.POST("/logout", func(ctx *gin.Context) {
+		var body LogoutBody
+		err := ctx.ShouldBindJSON(&body)
+		if err != nil {
+			ctx.JSON(http.StatusOK, MakeErrRes(err))
+		}
+
+		sessions, err := GetSessions()
+		if err != nil {
+			ctx.JSON(http.StatusOK, MakeErrRes(err))
+		}
+
+		err = sessions.deleteSession(body.SessionID)
+		if err != nil {
+			ctx.JSON(http.StatusOK, MakeErrRes(err))
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"type":    "success",
+			"message": "Successfully logged out user!",
+		})
+	})
+
+	r.POST("/validate-session", func(ctx *gin.Context) {
+		var body SessionBody
+		err := ctx.ShouldBindJSON(&body)
+		if err != nil {
+			ctx.JSON(http.StatusOK, MakeErrRes(err))
+			return
+		}
+
+		sessions, err := GetSessions()
+		if err != nil {
+			ctx.JSON(http.StatusOK, MakeErrRes(err))
+			return
+		}
+
+		ses := sessions.GetSessionFromId(body.SessionID)
+		if ses == nil {
+			ctx.JSON(http.StatusOK, gin.H{"type": "success", "message": "Session not found!", "validated": false})
+			return
+		}
+
+		if ses.User != body.Username {
+			ctx.JSON(http.StatusOK, gin.H{"type": "success", "message": "Username doesn't match session user!", "validated": false})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{"type": "success", "message": "Successfully validated session!", "validated": true})
 	})
 }
 
@@ -188,6 +248,50 @@ func (sz Sessions) generateSessionId(username string) int {
 		return id
 	}
 
+}
+
+func (sz Sessions) DeleteAll() error {
+	jsonString, err := json.MarshalIndent(Sessions{}, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(SessionsFile, jsonString, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (sz Sessions) deleteSession(sessionId int) error {
+	if sz.GetSessionFromId(sessionId) == nil {
+		return nil
+	}
+
+	for i, v := range sz {
+		if v.Id == sessionId {
+			sz = RemoveIndex(sz, i)
+		}
+	}
+
+	jsonString, err := json.MarshalIndent(sz, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(SessionsFile, jsonString, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RemoveIndex(s Sessions, index int) Sessions {
+	ret := make(Sessions, 0)
+	ret = append(ret, s[:index]...)
+	return append(ret, s[index+1:]...)
 }
 
 func GetUsers() (Users, error) {

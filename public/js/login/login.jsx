@@ -58,7 +58,7 @@ class LoginForm extends React.Component {
         let res = await fetch("/api/login", {method: "POST", body: JSON.stringify({username: username, password: this.state.password}), headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}})
         let json = await res.json()
 
-        if (json.type == "error") this.setState({error: json.message}); return
+        if (json.type === "error") {this.setState({error: json.message}); return}
 
         let session = json.json.sessionId
 

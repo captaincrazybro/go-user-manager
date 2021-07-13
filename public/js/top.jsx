@@ -11,12 +11,45 @@ class Top extends React.Component {
 class Login extends React.Component {
     constructor() {
         super();
+        this.validateSession()
+
         this.state = {
             session: localStorage.getItem("session"),
             user: localStorage.getItem("user")
         }
         this.state.loggedIn = this.state.session && this.state.user
     }
+
+    async validateSession() {
+        if ((!localStorage.getItem("session") && localStorage.getItem("user")) || (localStorage.getItem("session") && !localStorage.getItem("user")) || isNaN(localStorage.getItem("session"))) {
+            this.setState({
+                session: null,
+                user: null
+            })
+            localStorage.removeItem("session")
+            localStorage.removeItem("user")
+            return
+        }
+
+        if (!localStorage.getItem("session") && !localStorage.getItem("user")) return
+        let res = await fetch("/api/validate-session", {
+            method: "POST",
+            body: JSON.stringify({sessionId: parseInt(localStorage.getItem("session")), username: localStorage.getItem("user")})
+        })
+        let json = await res.json()
+
+        if (!json.validated) {
+            localStorage.removeItem("session")
+            localStorage.removeItem("user")
+
+            this.setState({
+                session: null,
+                user: null,
+                loggedIn: false
+            })
+        }
+    }
+
     render() {
         let login;
         if (this.state.loggedIn) {
@@ -39,12 +72,29 @@ class LoggedIn extends React.Component {
         this.handleClick = this.handleClick.bind(this)
     }
 
-    handleClick() {
-        // TODO: post to /api/logout
+    handleClick(event) {
+        event.preventDefault()
+        fetch("/api/logout", {
+            method: "POST",
+            body: JSON.stringify({sessionId: parseInt(localStorage.getItem("session"))})
+        })
+            .then(res => {
+                    return res.json()
+                }
+            )
+            .then(json => {
+                if (json.type === "error") {
+                    console.log(json.message)
+                }
+                window.location.reload(false);
+            })
+            .catch(err => {
+                console.log(err)
+            })
         localStorage.removeItem("session")
         localStorage.removeItem("user")
-        window.location.reload(false);
     }
+
     render() {
         return (
             <div style={{margin: "5px"}}>
@@ -84,7 +134,7 @@ class Welcome extends React.Component {
         return (
             <div id="welcome" style={{margin: "5px"}}>
                     <strong>
-                        <a id="welcome-link" href="/" style={{textDecoration: "none"}}>Welcome to the GTIS Mack User Manager!</a>
+                        <a id="welcome-link" href="/" style={{textDecoration: "none"}}>Welcome to the GTIS Mock User Manager!</a>
                     </strong>
             </div>
         )
